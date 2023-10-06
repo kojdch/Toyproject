@@ -14,10 +14,7 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
     <Filter Include="Session">
-      <UniqueIdentifier>{805a10ab-86a6-4365-a651-7497a1110754}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Object">
-      <UniqueIdentifier>{56808a45-b8a6-40c1-a0f0-df766c4190a3}</UniqueIdentifier>
+      <UniqueIdentifier>{93fe3288-5cf1-4933-b0ea-2fc60d420f3c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -39,12 +36,6 @@
     <ClCompile Include="..\..\ExternalLibrary\Session\pch.cpp">
       <Filter>Session</Filter>
     </ClCompile>
-    <ClCompile Include="Object\Object.cpp">
-      <Filter>Object</Filter>
-    </ClCompile>
-    <ClCompile Include="pch.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\ExternalLibrary\Session\ReceiveBuffer.h">
@@ -61,12 +52,6 @@
     </ClInclude>
     <ClInclude Include="..\..\ExternalLibrary\Session\pch.h">
       <Filter>Session</Filter>
-    </ClInclude>
-    <ClInclude Include="Object\Object.h">
-      <Filter>Object</Filter>
-    </ClInclude>
-    <ClInclude Include="pch.h">
-      <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

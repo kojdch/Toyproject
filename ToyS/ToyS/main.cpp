@@ -1,13 +1,14 @@
-﻿#include "pch.h"
-#include "TCPIO.h"
+﻿
+#include "pch.h"
+#include <Session\TCPIO.h>
 
 int main(int _argc, wchar_t* _argv[])
 {
 	wchar_t title[256] = L"ToyS";
 	SetConsoleTitle(title);
 
-	TCPIO::TCP tcp;
-	tcp.Init();
+	TCPIO::TCP tcp(1, 12345);
+	tcp.InitReceive();
 
 	while (true)
 	{

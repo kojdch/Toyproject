@@ -1,15 +1,15 @@
 #pragma once
 
 
-namespace Session {
+namespace TCPIO {
 
-	class ReceiveBuffer
+	class SendBuffer
 	{
 	public:
 
 	private:
 		unsigned char datas[1];
-		int size;
+
 	};
 
 
