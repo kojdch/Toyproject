@@ -8,6 +8,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <memory>
+#include <mswsock.h>
 
 #include <cstring>
 

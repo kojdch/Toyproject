@@ -29,6 +29,6 @@ namespace TCPIO {
 	};
 
 	const bool ConnectSendSocket(struct sockaddr_in& address, SOCKET& sock);
-	const void Send(SOCKET sock, const char* message);
+	const bool Send(SOCKET sock, const char* message);
 	const void echo(const SOCKET& socket, const struct sockaddr_in& address);
 }

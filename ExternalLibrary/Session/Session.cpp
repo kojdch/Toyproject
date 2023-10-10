@@ -14,6 +14,7 @@ namespace TCPIO {
 		_receiveBuffer.buf = receivebuf;
 		_sendBuffer.len = 65536;
 		_sendBuffer.buf = sendbuf;
+		memset(this, 0, sizeof(OVERLAPPED));
 	}
 
 }

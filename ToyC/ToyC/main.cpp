@@ -31,7 +31,14 @@ int main(int _argc, wchar_t* _argv[])
 	while (true)
 	{
 		std::cin >> message;
-		TCPIO::Send(sock, message.c_str());
+		if (!TCPIO::Send(sock, message.c_str()))
+		{
+			if (!TCPIO::ConnectSendSocket(address, sock))
+			{
+				return 0;
+			}
+			TCPIO::Send(sock, message.c_str());
+		}
 	}
 
 	return 0;

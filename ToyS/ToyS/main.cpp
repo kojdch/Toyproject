@@ -7,7 +7,7 @@ int main(int _argc, wchar_t* _argv[])
 	wchar_t title[256] = L"ToyS";
 	SetConsoleTitle(title);
 
-	TCPIO::TCP tcp(1, 12345);
+	TCPIO::TCP tcp(8, 12345);
 	tcp.InitReceive();
 
 	while (true)

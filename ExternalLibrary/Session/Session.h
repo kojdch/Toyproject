@@ -3,7 +3,7 @@
 
 namespace TCPIO {
 	
-	class Session
+	class Session : public OVERLAPPED
 	{
 	public:
 		Session(SOCKET socket);
