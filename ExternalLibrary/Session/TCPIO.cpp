@@ -206,16 +206,7 @@ namespace TCPIO {
 							DWORD flag = 0;
 							getSession._receiveBuffer.len = recvbyte;
 							std::cout << std::this_thread::get_id() << ':' << getSession._receiveBuffer.buf << std::endl;
-
 							getSession._sendBuffer = getSession._receiveBuffer;
-							/*auto ec = recv(recvSocket, buf, sizeof(buf), 0);
-							if (ec < 0)
-							{
-								auto ec = WSAGetLastError();
-								std::cout << ec << '\n';
-								return;
-							}*/
-
 							ec = WSASend(getSession._socket, &getSession._sendBuffer, 1, &getSession._sendBuffer.len, flag, NULL, NULL);
 							if (ec < 0)
 							{
