@@ -10,6 +10,7 @@ namespace TCPIO {
 	class TCP
 	{
 	public:
+
 		TCP(const int threadCount, const int port);
 		virtual ~TCP() = default;
 		const void InitReceive();
@@ -31,8 +32,8 @@ namespace TCPIO {
 		int _backLogSize;
 
 		Session _session;
-		int _sessionCount;
-		std::map<int, int> sessions;
+		int _lastSessionID;
+		std::map<int, Session> _sessions;
 	};
 
 	const bool ConnectSendSocket(struct sockaddr_in& address, SOCKET& sock);

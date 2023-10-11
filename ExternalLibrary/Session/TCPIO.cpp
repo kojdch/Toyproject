@@ -18,7 +18,7 @@ namespace TCPIO {
 		: _port(port)
 		, _backLogSize(SOMAXCONN)
 		, _threadCount(threadCount)
-		, _sessionCount(0)
+		, _lastSessionID(0)
 		, _acceptEx(NULL)
 
 	{
@@ -160,11 +160,11 @@ namespace TCPIO {
 					{
 						void* key = NULL;
 						OVERLAPPED* overlapped = NULL;
-						DWORD bytesTransferred = 0;
+						DWORD recvbyte = 0;
 
 						BOOL completionStatus = GetQueuedCompletionStatus(
 							_ioHandle,
-							&bytesTransferred,
+							&recvbyte,
 							(PULONG_PTR)&key,
 							&overlapped,
 							INFINITE);
@@ -174,7 +174,7 @@ namespace TCPIO {
 							if (overlapped != NULL)
 							{
 								Session getSession = *reinterpret_cast<Session*>(overlapped);
-
+								continue;
 							}
 
 							ec = WSAGetLastError();
@@ -183,48 +183,27 @@ namespace TCPIO {
 
 						}
 
-						if (NULL == key)
-						{
-							break;
-						}
-
 						Session getSession = *reinterpret_cast<Session*>(overlapped);
 
-					}
-				}); 
-			std::thread thread(
-					[&]()
-					{
-						while (0)
+						if (recvbyte == 0)
 						{
-							DWORD recvbyte;
-							DWORD flag = 0;
-							/*auto result = WSARecv
-							(recvSocket, &session->_receiveBuffer, 1, &recvbyte, &flag, session, NULL);
-							if (result == SOCKET_ERROR)
-							{
-								ec = WSAGetLastError();
+							CreateIoCompletionPort((HANDLE)getSession._socket, _ioHandle, 0, 0);
 
-								if (WSA_IO_PENDING != ec) {
-									std::cout << ec << '\n';
-									return;
-								}
-							}*/
-
-							int ec = 0;
-							OVERLAPPED* lpOverlapped = NULL;
-							int compKey = 0;
-							if (!GetQueuedCompletionStatus
-							(_ioHandle, &recvbyte, (PULONG_PTR)&compKey, (LPOVERLAPPED*)&lpOverlapped, INFINITE))
+							SOCKET sock = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
+							if (sock == INVALID_SOCKET)
 							{
-								ec = WSAGetLastError();
+								auto ec = WSAGetLastError();
 								std::cout << ec << '\n';
-								if (ec == WSA_IO_PENDING)
-									continue;
 								return;
 							}
-							Session& getSession = *reinterpret_cast<Session*>(lpOverlapped);
-
+							_session = Session(sock);
+							PostAccept();
+							_lastSessionID++;
+							_sessions.emplace(_lastSessionID, getSession);
+						}
+						else
+						{
+							DWORD flag = 0;
 							getSession._receiveBuffer.len = recvbyte;
 							std::cout << std::this_thread::get_id() << ':' << getSession._receiveBuffer.buf << std::endl;
 
@@ -245,11 +224,66 @@ namespace TCPIO {
 								return;
 							}
 						}
-					});
+
+						PostRecv(getSession);
+					}
+				}); 
+			//std::thread thread(
+			//		[&]()
+			//		{
+			//			while (0)
+			//			{
+			//				DWORD recvbyte;
+			//				DWORD flag = 0;
+			//				/*auto result = WSARecv
+			//				(recvSocket, &session->_receiveBuffer, 1, &recvbyte, &flag, session, NULL);
+			//				if (result == SOCKET_ERROR)
+			//				{
+			//					ec = WSAGetLastError();
+
+			//					if (WSA_IO_PENDING != ec) {
+			//						std::cout << ec << '\n';
+			//						return;
+			//					}
+			//				}*/
+
+			//				int ec = 0;
+			//				OVERLAPPED* lpOverlapped = NULL;
+			//				int compKey = 0;
+			//				if (!GetQueuedCompletionStatus
+			//				(_ioHandle, &recvbyte, (PULONG_PTR)&compKey, (LPOVERLAPPED*)&lpOverlapped, INFINITE))
+			//				{
+			//					ec = WSAGetLastError();
+			//					std::cout << ec << '\n';
+			//					if (ec == WSA_IO_PENDING)
+			//						continue;
+			//					return;
+			//				}
+			//				Session& getSession = *reinterpret_cast<Session*>(lpOverlapped);
+
+			//				getSession._receiveBuffer.len = recvbyte;
+			//				std::cout << std::this_thread::get_id() << ':' << getSession._receiveBuffer.buf << std::endl;
+
+			//				getSession._sendBuffer = getSession._receiveBuffer;
+			//				/*auto ec = recv(recvSocket, buf, sizeof(buf), 0);
+			//				if (ec < 0)
+			//				{
+			//					auto ec = WSAGetLastError();
+			//					std::cout << ec << '\n';
+			//					return;
+			//				}*/
+
+			//				ec = WSASend(getSession._socket, &getSession._sendBuffer, 1, &getSession._sendBuffer.len, flag, NULL, NULL);
+			//				if (ec < 0)
+			//				{
+			//					auto ec = WSAGetLastError();
+			//					std::cout << ec << '\n';
+			//					return;
+			//				}
+			//			}
+			//		});
 			//_thread.emplace(i, thread);
-			auto thread_id = thread.get_id();
-			std::cout << thread_id << '\n';
-			thread.detach();
+			//thread.detach();
 			thread1.detach();
 		}
 
@@ -305,7 +339,7 @@ namespace TCPIO {
 		//}
 	}
 
-	const void TCP::PostAccept() 
+	const void TCP::PostAccept()
 	{
 		DWORD recvSize = 0;
 		DWORD addressSize = sizeof(sockaddr_in) + 16;
@@ -325,7 +359,7 @@ namespace TCPIO {
 			ec = GetLastError();
 			if (ec != ERROR_IO_PENDING)
 			{
-				std::cout << ec << '\n';
+				std::cout << "TCP::PostAccept()" << ec << '\n';
 			}
 		}
 		else
@@ -437,7 +471,7 @@ namespace TCPIO {
 		if (sock == INVALID_SOCKET)
 		{
 			auto ec = WSAGetLastError();
-			std::cout << ec << '\n';
+			std::cout << "socket" << ec << '\n';
 			return false;
 		}
 
@@ -448,7 +482,7 @@ namespace TCPIO {
 		if (connect(sock, (struct sockaddr*)&address, sizeof(address)) != 0)
 		{
 			auto ec = WSAGetLastError();
-			std::cout << ec << '\n';
+			std::cout << "connect" << ec << '\n';
 			return false;
 		}
 		return true;
@@ -460,7 +494,7 @@ namespace TCPIO {
 		if (ec < 0)
 		{
 			auto ec = WSAGetLastError();
-			std::cout << ec << '\n';
+			std::cout << "send" << ec << '\n';
 			return false;
 		}
 
@@ -469,7 +503,7 @@ namespace TCPIO {
 		if (ec < 0)
 		{
 			auto ec = WSAGetLastError();
-			std::cout << ec << '\n';
+			std::cout << "recv" << ec << '\n';
 			return false;
 		}
 
