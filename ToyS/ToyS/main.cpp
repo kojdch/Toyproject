@@ -7,7 +7,17 @@ int main(int _argc, wchar_t* _argv[])
 	wchar_t title[256] = L"ToyS";
 	SetConsoleTitle(title);
 
-	TCPIO::TCP tcp(8, 12345);
+	WORD wVersionRequested;
+	WSADATA wsaData;
+	wVersionRequested = MAKEWORD(2, 2);
+
+	auto errorcode = WSAStartup(wVersionRequested, &wsaData);
+	if (errorcode != 0)
+	{
+		return 0;
+	}
+
+	TCPIO::TCP tcp(2, 12345);
 	tcp.InitReceive();
 
 	while (true)

@@ -35,7 +35,7 @@ int main(int _argc, wchar_t* _argv[])
 		{
 			if (!TCPIO::ConnectSendSocket(address, sock))
 			{
-				return 0;
+				continue;
 			}
 			TCPIO::Send(sock, message.c_str());
 		}

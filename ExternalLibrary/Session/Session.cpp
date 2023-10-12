@@ -6,13 +6,17 @@
 
 namespace TCPIO {
 
+	Session::Session()
+	{
+	}
+
 	Session::Session(SOCKET socket)
 	: _receiveBuffer()
 	, _socket(socket)
 	{
-		_receiveBuffer.len = 65536;
+		_receiveBuffer.len = 256;
 		_receiveBuffer.buf = receivebuf;
-		_sendBuffer.len = 65536;
+		_sendBuffer.len = 256;
 		_sendBuffer.buf = sendbuf;
 		memset(this, 0, sizeof(OVERLAPPED));
 	}
