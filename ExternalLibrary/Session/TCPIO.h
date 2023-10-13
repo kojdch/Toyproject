@@ -3,7 +3,6 @@
 
 namespace TCPIO {
 	const void ConsoleOut(const char* a);
-	const void ConsoleOut(const wchar_t* a);
 
 	class Session;
 
@@ -38,5 +37,4 @@ namespace TCPIO {
 
 	const bool ConnectSendSocket(struct sockaddr_in& address, SOCKET& sock);
 	const bool Send(SOCKET sock, const char* message);
-	const void echo(const SOCKET& socket, const struct sockaddr_in& address);
 }
