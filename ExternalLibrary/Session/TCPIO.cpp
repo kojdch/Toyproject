@@ -38,7 +38,7 @@ namespace TCPIO {
 			std::cout << ec << '\n';
 			return;
 		}
-		_session = Session(sock);
+		_session = std::make_shared<Session>(sock);
 	}
 
 	const void TCP::InitReceive()
@@ -83,7 +83,7 @@ namespace TCPIO {
 		for (int i = 0; i < _threadCount; ++i)
 		{
 			auto thread = std::make_shared<std::thread>(std::thread(
-				[&]() 
+				[&]()
 				{
 					while (1)
 					{
@@ -107,7 +107,7 @@ namespace TCPIO {
 							}
 
 							ec = WSAGetLastError();
-							if(ec == WAIT_TIMEOUT)
+							if (ec == WAIT_TIMEOUT)
 								continue;
 
 						}
@@ -125,10 +125,11 @@ namespace TCPIO {
 								std::cout << ec << '\n';
 								return;
 							}
-							_session = Session(sock);
+							_session = std::make_shared<Session>(sock);
+							std::shared_ptr<Session> sharedSession(&getSession);
 							PostAccept();
 							_lastSessionID++;
-							_sessions.emplace(_lastSessionID, getSession);
+							_sessions.emplace(_lastSessionID, sharedSession);
 						}
 						else
 						{
@@ -147,7 +148,7 @@ namespace TCPIO {
 
 						PostRecv(getSession);
 					}
-				})); 
+				}));
 			_thread.emplace(i, thread);
 			thread->detach();
 		}
@@ -178,13 +179,13 @@ namespace TCPIO {
 
 		if (_acceptEx(
 			_serviceSocket,
-			_session._socket,
-			&_session.receivebuf,
+			_session->_socket,
+			&_session->receivebuf,
 			0,
 			addressSize,
 			addressSize,
 			&recvSize,
-			&_session) == FALSE)
+			_session.get()) == FALSE)
 		{
 			ec = GetLastError();
 			if (ec != ERROR_IO_PENDING)
@@ -198,10 +199,11 @@ namespace TCPIO {
 				_ioHandle,
 				0,
 				(ULONG_PTR)&key,
-				&_session);
+				_session.get());
 		}
 	}
-	const int TCP::PostRecv(Session& session)
+	
+	const int TCP::PostRecv(Session session)
 	{
 		DWORD bytes = 0;
 		DWORD flags = 0;
