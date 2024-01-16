@@ -82,7 +82,7 @@ namespace TCPIO {
 
 		for (int i = 0; i < _threadCount; ++i)
 		{
-			std::thread thread(
+			auto thread = std::make_shared<std::thread>(std::thread(
 				[&]() 
 				{
 					while (1)
@@ -147,9 +147,9 @@ namespace TCPIO {
 
 						PostRecv(getSession);
 					}
-				}); 
+				})); 
 			_thread.emplace(i, thread);
-			thread.detach();
+			thread->detach();
 		}
 
 		while (0)

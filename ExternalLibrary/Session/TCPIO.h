@@ -23,7 +23,7 @@ namespace TCPIO {
 		HANDLE _ioHandle;
 		LPFN_ACCEPTEX _acceptEx;
 
-		std::map<int, std::thread> _thread;
+		std::map<int, std::shared_ptr<std::thread>> _thread;
 		HANDLE* _threadHandle;
 		int _threadCount;
 
