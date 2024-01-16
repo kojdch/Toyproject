@@ -2,30 +2,44 @@
 
 namespace TCPIO {
 
-	class Session : public OVERLAPPED
+	enum class Type : byte
+	{
+		Recv,
+		Send,
+		Accept,
+		Disconnect,
+	};
+
+	class Context : public OVERLAPPED
 	{
 	public:
-
-		enum Type
-		{
-			Recv,
-			Send,
-			Accept,
-			Disconnect,
-		};
-
-		Session();
-		Session(SOCKET socket);
-		~Session() = default;
+		Context(SOCKET socket, Type type, int uid);
+		~Context() = default;
 
 		WSABUF _receiveBuffer;
 		WSABUF _sendBuffer;
 		SOCKET _socket;
 
+		int _uid;
 		Type _type;
 
 		char receivebuf[256];
 		char sendbuf[256];
+	};
+
+	class Session
+	{
+	public:
+		Session(Context context);
+		Session(SOCKET socket, int uid);
+		~Session() = default;
+
+		SOCKET _socket;
+
+		Context _context;
+
+		int _uid;
+		Type _type;
 
 	public:
 		template<typename Ptr>
@@ -42,6 +56,6 @@ namespace TCPIO {
 	private:
 		//SendBuffer _sendBuffer;
 
-		void* objectPtr = nullptr;
+		std::atomic<void*> objectPtr = nullptr;
 	};
 }

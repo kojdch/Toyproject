@@ -12,8 +12,10 @@
 
 #include <cstring>
 
+#include <mutex>
 #include <thread>
 #include <map>
+#include <queue>
 #include <unordered_map>
 #include <array>
 #include <vector>

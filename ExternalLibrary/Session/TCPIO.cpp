@@ -2,6 +2,7 @@
 #include "pch.h"
 #include "Session.h"
 #include "TCPIO.h"
+#include "../ToyS/ToyS/Object/Object.h"
 
 namespace TCPIO {
 	const void TCPIO::ConsoleOut(const char* a)
@@ -38,7 +39,7 @@ namespace TCPIO {
 			std::cout << ec << '\n';
 			return;
 		}
-		_session = std::make_shared<Session>(sock);
+		_context = std::make_shared<Context>(sock, Type::Recv, _lastSessionID);
 	}
 
 	const void TCP::InitReceive()
@@ -102,7 +103,7 @@ namespace TCPIO {
 						{
 							if (overlapped != NULL)
 							{
-								Session getSession = *reinterpret_cast<Session*>(overlapped);
+								Context getContext = *reinterpret_cast<Context*>(overlapped);
 								continue;
 							}
 
@@ -112,11 +113,17 @@ namespace TCPIO {
 
 						}
 
-						Session getSession = *reinterpret_cast<Session*>(overlapped);
+						Context getContext = *reinterpret_cast<Context*>(overlapped);
+						DWORD flags;
+						auto value = WSAGetOverlappedResult(getContext._socket, overlapped, &recvbyte, FALSE, &flags);
+						if (value == FALSE)
+						{
+							std::cout << "WSAGetOverlappedResult" << value << '\n';
+						}
 
 						if (recvbyte == 0)
 						{
-							CreateIoCompletionPort((HANDLE)getSession._socket, _ioHandle, 0, 0);
+							CreateIoCompletionPort((HANDLE)getContext._socket, _ioHandle, 0, 0);
 
 							SOCKET sock = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
 							if (sock == INVALID_SOCKET)
@@ -125,28 +132,28 @@ namespace TCPIO {
 								std::cout << ec << '\n';
 								return;
 							}
-							_session = std::make_shared<Session>(sock);
-							std::shared_ptr<Session> sharedSession(&getSession);
+
+							AddSession(getContext);
+
+							_context = std::make_shared<Context>(sock, Type::Recv, _lastSessionID);
 							PostAccept();
-							_lastSessionID++;
-							_sessions.emplace(_lastSessionID, sharedSession);
 						}
 						else
 						{
 							DWORD flag = 0;
-							getSession._receiveBuffer.len = recvbyte;
-							std::cout << std::this_thread::get_id() << ':' << getSession._receiveBuffer.buf << std::endl;
-							getSession._sendBuffer = getSession._receiveBuffer;
-							ec = WSASend(getSession._socket, &getSession._sendBuffer, 1, &getSession._sendBuffer.len, flag, NULL, NULL);
+							getContext._receiveBuffer.len = recvbyte;
+							//std::cout << std::this_thread::get_id() << ':' << getContext._receiveBuffer.buf << std::endl;
+							getContext._sendBuffer = getContext._receiveBuffer;
+							ec = WSASend(getContext._socket, &getContext._sendBuffer, 1, &getContext._sendBuffer.len, flag, NULL, NULL);
 							if (ec < 0)
 							{
 								auto ec = WSAGetLastError();
-								std::cout << ec << '\n';
+								std::cout << "WSASend" << ec << '\n';
 								return;
 							}
 						}
 
-						PostRecv(getSession);
+						PostRecv(getContext);
 					}
 				}));
 			_thread.emplace(i, thread);
@@ -179,13 +186,13 @@ namespace TCPIO {
 
 		if (_acceptEx(
 			_serviceSocket,
-			_session->_socket,
-			&_session->receivebuf,
+			_context->_socket,
+			&_context->receivebuf,
 			0,
 			addressSize,
 			addressSize,
 			&recvSize,
-			_session.get()) == FALSE)
+			_context.get()) == FALSE)
 		{
 			ec = GetLastError();
 			if (ec != ERROR_IO_PENDING)
@@ -199,17 +206,17 @@ namespace TCPIO {
 				_ioHandle,
 				0,
 				(ULONG_PTR)&key,
-				_session.get());
+				_context.get());
 		}
 	}
 	
-	const int TCP::PostRecv(Session session)
+	const int TCP::PostRecv(Context context)
 	{
 		DWORD bytes = 0;
 		DWORD flags = 0;
 		int ec = 0;
 		auto result = WSARecv
-		(session._socket, &session._receiveBuffer, 1, &bytes, &flags, &session, NULL);
+		(context._socket, &context._receiveBuffer, 1, &bytes, &flags, &context, NULL);
 		if (result == SOCKET_ERROR)
 		{
 			ec = WSAGetLastError();
@@ -220,6 +227,17 @@ namespace TCPIO {
 			}
 		}
 		return ec;
+	}
+
+	const void TCP::AddSession(Context context)
+	{
+		//std::lock_guard<recursive_mutex> lock(_mutex);
+		auto sharedSession = std::make_shared<Session>(context);
+		auto obj = Object::PlayerPtr(Object::ObjectType::player);
+		sharedSession->SetObjectPtr(obj);
+
+		_lastSessionID++;
+		_sessions.emplace(context._uid, sharedSession);
 	}
 
 	const bool TCPIO::ConnectSendSocket(struct sockaddr_in& address, SOCKET& sock)

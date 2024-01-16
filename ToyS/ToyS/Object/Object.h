@@ -2,25 +2,29 @@
 
 namespace Object 
 {
-	enum class objectType : byte {
+	enum class ObjectType : byte {
 		none,
 		player,
 		nplayer,
 	};
 
-	interface MapObject
-	{
-		int posX;
-		int posY;
-	};
-
-	class Object : MapObject
+	class MapObject
 	{
 	public:
-		Object();
-		~Object() = default;
+		int _posX;
+		int _posY;
+		ObjectType _type;
+	};
+
+	class Player : MapObject
+	{
+	public:
+		Player(ObjectType type);
+		~Player() = default;
 
 	private:
 		
 	};
+
+	using PlayerPtr = Player*;
 }

@@ -152,6 +152,8 @@
     <ClCompile Include="main.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Session\pch.h</PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="Map\Action.cpp" />
+    <ClCompile Include="Map\Map.cpp" />
     <ClCompile Include="Object\Object.cpp" />
     <ClCompile Include="pch.cpp" />
   </ItemGroup>
@@ -161,6 +163,8 @@
     <ClInclude Include="..\..\ExternalLibrary\Session\SendBuffer.h" />
     <ClInclude Include="..\..\ExternalLibrary\Session\Session.h" />
     <ClInclude Include="..\..\ExternalLibrary\Session\TCPIO.h" />
+    <ClInclude Include="Map\Action.h" />
+    <ClInclude Include="Map\Map.h" />
     <ClInclude Include="Object\Object.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>

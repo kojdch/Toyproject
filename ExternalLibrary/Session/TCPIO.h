@@ -16,7 +16,13 @@ namespace TCPIO {
 
 		const void PostAccept();
 		//const int PostRecv(std::shared_ptr<Session> session);
-		const int PostRecv(Session session);
+		const int PostRecv(Context context);
+
+		const void AddSession(Context context);
+
+		const int GetSessionCount() {
+			return _sessions.size();
+		}
 
 	private:
 		SOCKET _serviceSocket;
@@ -31,9 +37,10 @@ namespace TCPIO {
 		int _port;
 		int _backLogSize;
 
-		std::shared_ptr<Session> _session;
+		std::shared_ptr<Context> _context;
 		int _lastSessionID;
 		std::map<int, std::shared_ptr<Session>> _sessions;
+		//mutable std::recursive_mutex _mutex;
 	};
 
 	const bool ConnectSendSocket(struct sockaddr_in& address, SOCKET& sock);
