@@ -17,7 +17,7 @@ namespace Map
 		void AddObject(const Object::MapObject object);
 
 	private:
-		std::queue<int> _queue;
+		//std::queue<int> _queue;
 
 		std::map<int, Object::MapObject> _objects;
 		std::map<int, Object::MapObject> _players;
